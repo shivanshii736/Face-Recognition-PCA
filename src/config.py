@@ -1,0 +1,4 @@
+SEED = 42
+IMG_SHAPE = (64, 64)
+D = 4096
+N_PEOPLE = 40
