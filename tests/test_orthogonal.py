@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from orthogonal import gram_schmidt, project, least_squares
+from src.orthogonal import gram_schmidt, project, least_squares
 
 
 @pytest.fixture

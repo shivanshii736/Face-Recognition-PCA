@@ -171,7 +171,7 @@ def choose_k(eigvals, threshold=0.95, save_path=None):
     comps = np.arange(1, r + 1)
     fig, axes = plt.subplots(1, 2, figsize=(12, 4.5))
 
-    axes[0].plot(comps, 100 * ratio, lw=1.5)
+    axes[0].plot(comps[:-1], 100 * ratio[:-1], lw=1.5)
     axes[0].set_yscale("log")
     axes[0].set_xlabel("Component index i")
     axes[0].set_ylabel("Explained variance (%)  [log scale]")
@@ -309,7 +309,7 @@ def plot_eigenfaces(W_full, n_faces=10, eigvals=None, save_path=None):
 
     ncols = 5
     nrows = int(np.ceil(n_faces / ncols))
-    fig, axes = plt.subplots(nrows, ncols, figsize=(2.4 * ncols, 2.6 * nrows))
+    fig, axes = plt.subplots(nrows, ncols, figsize=(2.4 * ncols, 3.1 * nrows))
     axes = np.atleast_1d(axes).ravel()
     ratio = None if eigvals is None else np.asarray(eigvals) / np.sum(eigvals)
 
@@ -325,7 +325,7 @@ def plot_eigenfaces(W_full, n_faces=10, eigvals=None, save_path=None):
         ax.set_title(title, fontsize=9)
 
     fig.suptitle(f"First {n_faces} eigenfaces (principal directions of face space)")
-    fig.tight_layout()
+    fig.tight_layout(h_pad=2.5)
     fig.savefig(save_path, dpi=150)
     plt.close(fig)
     print(f"Saved figure              : {save_path}")
