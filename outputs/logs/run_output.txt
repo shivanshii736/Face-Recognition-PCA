@@ -1,0 +1,107 @@
+﻿
+=== STAGE 1: DATA MATRIX ===
+X (all faces)  : (400, 4096)  -> 400 images, each flattened to 4096 pixels
+X_train        : (320, 4096),  X_test: (80, 4096)
+labels         : 40 people, 8 train / 2 test each
+
+=== STAGE 2: MEAN-CENTERING ===
+mean_face shape      : (4096,)
+max |column mean| of Xc_train: 1.05e-16 (should be ~0)
+
+=== STAGE 3: RREF, RANK AND NULLITY ===
+A_demo shape : (64, 10)  (columns = 10 downsampled images)
+pivot columns: [0, 1, 2, 3, 4, 5, 6]
+rank = 7,  nullity = 10 - 7 = 3
+cross-check with np.linalg.matrix_rank: 7
+
+=== STAGE 4: LINEAR INDEPENDENCE AND BASIS SELECTION ===
+B_demo (basis = pivot columns): (64, 7)
+col7 is redundant: col7 = (1)*col0 + (1)*col1
+col8 is redundant: col8 = (1)*col2 + (-1)*col3
+col9 is redundant: col9 = (2)*col4
+Pivot columns are linearly independent and span the same column space as A_demo.
+saved C:\Users\Shivanshi\face-recognition-pca\outputs\figures\sample_faces.png
+
+=== STAGE 5: MODIFIED GRAM-SCHMIDT ===
+||Q^T Q - I||_F: 2.447e-15
+||B - QR||_F:    2.614e-13
+Q matches NumPy: True
+R matches NumPy: True
+
+=== STAGE 6: PROJECTION ===
+||B^T residual||:       3.582e-12  (should be ~0)
+Pythagoras:             True (|difference|=1.421e-14)
+Idempotent ||P(p) - p||: 2.013e-15  (should be ~0)
+
+=== STAGE 7: LEAST SQUARES ===
+Weights match np.linalg.lstsq: True
+Max weight difference:         2.073e-16
+||B w - projection(y)||:       4.303e-14
+
+=== STAGE 8: COVARIANCE, EIGENVALUES & EIGENFACES (via SVD) ===
+Xc_train shape            : (320, 4096)
+Covariance matrix C       : would be 4096 x 4096 (134 MB) -> NOT formed
+Method                    : thin SVD of Xc  (Xc = U S V^T)
+Relation                  : eigvecs of C = right singular vectors V,  eigval = S^2/(n-1)
+Eigenvectors W_full shape : (4096, 320)  (columns = eigenfaces)
+Non-zero eigenvalues      : 319 of 4096 (rank of Xc <= n-1 = 319)
+Total variance (trace C)  : 78.7799
+Top 5 eigenvalues         : [18.7601 10.3461  6.5933  3.9976  2.909 ]
+Variance in top 5 comps   : 54.08%
+
+=== STAGE 8b: DIAGONALIZATION CHECK  (C = V Lambda V^T) ===
+--- A. Top-50 eigenpairs of the real 4096-dim covariance matrix ---
+A1  max|W_k^T W_k - I|                    = 2.22e-15   (orthonormal)
+A2  ||C W_k - W_k Lambda_k|| / ||..||     = 2.78e-15   (C v = lambda v)
+A3  max off-diag of W_k^T C W_k / lambda1 = 3.74e-16   (diagonal)
+    max|diag(W_k^T C W_k) - lambda| / l1  = 1.56e-15
+--- B. Small 64-dim version (8x8 block-averaged faces), full eigendecomposition ---
+B1  max|C - C^T|                          = 0.00e+00   (symmetric)
+B2  max|V^T V - I|                        = 2.33e-15   (orthogonal)
+B3  ||C - V Lambda V^T|| / ||C||          = 1.76e-15   (diagonalization)
+B4  max|lambda - S^2/(n-1)| / lambda1     = 9.73e-16   (eigh == SVD)
+    max| |v_i . v_svd_i| - 1 | (top 10)    = 1.11e-15
+RESULT: ALL CHECKS PASSED (tolerance 1e-08)
+
+=== STAGE 9: EXPLAINED VARIANCE & CHOICE OF k ===
+k for 80% variance : 26
+k for 90% variance : 62
+k for 95% variance : 111
+k for 99% variance : 222
+Chosen k (95% threshold)  : 111   (cumulative variance = 0.9501)
+Compression               : 4096 pixels -> 111 coefficients per face (~37x fewer numbers)
+Saved figure              : C:\Users\Shivanshi\face-recognition-pca\outputs\figures\p3_variance_curve.png
+
+=== STAGE 8c: EIGENFACES PLOT ===
+Saved figure              : C:\Users\Shivanshi\face-recognition-pca\outputs\figures\p3_eigenfaces.png
+
+=== STAGE 10: PROJECTION TO EIGENFACE SPACE ===
+W_k shape : (4096, 111)  (k_95 = 111)
+Z_train   : (320, 111),  Z_test: (80, 111)
+
+=== STAGE 11: RECOGNITION (1-NN) AND ACCURACY vs k ===
+accuracy at k_95 = 111: 0.9250  (74/80)
+  k =   5 -> accuracy 0.8000
+  k =  10 -> accuracy 0.8750
+  k =  20 -> accuracy 0.9125
+  k =  30 -> accuracy 0.9125
+  k =  50 -> accuracy 0.9125
+  k = 100 -> accuracy 0.9250
+  k = 111 -> accuracy 0.9250
+  k = 150 -> accuracy 0.9250
+saved C:\Users\Shivanshi\face-recognition-pca\outputs\figures\p4_accuracy_vs_k.png
+
+=== STAGE 12: RECONSTRUCTION, MSE AND COMPRESSION ===
+    k   MSE (test)  compression
+    5     0.008860       50.07x
+   20     0.005048       14.18x
+   50     0.003337        5.83x
+  111     0.002391        2.65x
+saved C:\Users\Shivanshi\face-recognition-pca\outputs\figures\p4_reconstructions.png
+
+=== STAGE 13: DENOISING DEMO ===
+MSE noisy vs clean    : 0.009953
+MSE denoised vs clean : 0.004741  (k = 111)
+saved C:\Users\Shivanshi\face-recognition-pca\outputs\figures\p4_denoise.png
+
+=== DONE: figures are in outputs/figures/ ===
